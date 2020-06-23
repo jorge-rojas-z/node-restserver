@@ -15,9 +15,9 @@ app.get('/usuarios', function(req, res) {
 })
 
 app.post('/usuarios', function(req, res) {
-    let body = req.body;
+    let usuario = req.body;
 
-    if (body.nombre === undefined) {
+    if (usuario.nombre === undefined) {
         res.status(400).json({
             ok: false,
             mensaje: "el campo nombre viene vacio"
