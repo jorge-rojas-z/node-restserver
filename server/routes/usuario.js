@@ -1,16 +1,17 @@
 const express = require('express');
+//encriptar contraseña
 const bcrypt = require('bcrypt');
 const _ = require('underscore');
 const Usuario = require('../models/usuario');
+const { verificaToken, verificaRole } = require('../middleware/autenticacion');
 const { response } = require('express');
 const app = express();
 
-app.get('/usuarios', function(req, res) {
+app.get('/usuarios', verificaToken, function(req, res) {
     //res.json('getUsuario')
 
     //validar que sea numero el req.query
     let desde = Number(req.query.desde) || 0;
-
     let cant = Number(req.query.cant) || 5;
 
     //con el string que ponemos estamos filtrando los campos que retornamos
@@ -37,7 +38,7 @@ app.get('/usuarios', function(req, res) {
         })
 });
 
-app.post('/usuarios', function(req, res) {
+app.post('/usuarios', [verificaToken, verificaRole], function(req, res) {
     let body = req.body;
 
     if (body.nombre === undefined) {
@@ -73,7 +74,7 @@ app.post('/usuarios', function(req, res) {
 
 });
 
-app.put('/usuarios/:id', function(req, res) {
+app.put('/usuarios/:id', [verificaToken, verificaRole], function(req, res) {
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre',
         'email',
@@ -99,7 +100,7 @@ app.put('/usuarios/:id', function(req, res) {
 
 });
 
-app.delete('/usuarios/:id', function(req, res) {
+app.delete('/usuarios/:id', [verificaToken, verificaRole], function(req, res) {
     //res.json('deleteUsuario')
     let id = req.params.id;
     let body = _.pick(req.body, ['estado']);
@@ -107,7 +108,7 @@ app.delete('/usuarios/:id', function(req, res) {
 
     //con esto se borra el usuario fisicamente
     //Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
-    Usuario.findByIdAndUpdate(id, body, { new: true }, (err, usuarioBorrado) => {
+    Usuario.findByIdAndUpdate(id, body, { new: true, useFindAndModify: true }, (err, usuarioBorrado) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
